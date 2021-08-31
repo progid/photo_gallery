@@ -16,7 +16,13 @@ public class SwiftPhotoGalleryPlugin: NSObject, FlutterPlugin {
       let arguments = call.arguments as! Dictionary<String, AnyObject>
       let mediumType = arguments["mediumType"] as! String
       let hideIfEmpty = arguments["hideIfEmpty"] as? Bool
-      result(listAlbums(mediumType: mediumType, hideIfEmpty: hideIfEmpty))
+        
+      DispatchQueue.global(qos: .userInitiated).async {
+        let res : [NSDictionary] = self.listAlbums(mediumType: mediumType, hideIfEmpty: hideIfEmpty)
+        DispatchQueue.main.async {
+            result(res)
+        }
+      }
     }
     else if(call.method == "listMedia") {
       let arguments = call.arguments as! Dictionary<String, AnyObject>
@@ -25,7 +31,13 @@ public class SwiftPhotoGalleryPlugin: NSObject, FlutterPlugin {
       let newest = arguments["newest"] as! Bool
       let skip = arguments["skip"] as? NSNumber
       let take = arguments["take"] as? NSNumber
-      result(listMedia(albumId: albumId, mediumType: mediumType, newest: newest, skip: skip, take: take))
+        
+      DispatchQueue.global(qos: .userInitiated).async {
+        let res : NSDictionary = self.listMedia(albumId: albumId, mediumType: mediumType, newest: newest, skip: skip, take: take)
+        DispatchQueue.main.async {
+            result(res)
+        }
+      }
     }
     else if(call.method == "getMedium") {
       let arguments = call.arguments as! Dictionary<String, AnyObject>
@@ -107,7 +119,7 @@ public class SwiftPhotoGalleryPlugin: NSObject, FlutterPlugin {
       albumIds.insert(albumId)
       
       let options = PHFetchOptions()
-      options.predicate = self.predicateFromMediumType(mediumType: mediumType)
+//      options.predicate = self.predicateFromMediumType(mediumType: mediumType)
       if #available(iOS 9, *) {
         fetchOptions.fetchLimit = 1
       }
@@ -195,7 +207,6 @@ public class SwiftPhotoGalleryPlugin: NSObject, FlutterPlugin {
       let asset = fetchResult.object(at: index) as PHAsset
       items.append(getMediumFromAsset(asset: asset))
     }
-    
     return [
       "newest": newest,
       "start": start,
